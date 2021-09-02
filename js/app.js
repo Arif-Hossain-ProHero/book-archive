@@ -1,16 +1,38 @@
 const loadData = () => {
-    const searchInput = document.getElementById('search-input');
+    let searchInput = document.getElementById('search-input');
+    const bookContainer = document.getElementById('book-container');
+    const showResults = document.getElementById('show-results-number');
+    const loader = document.getElementById('loading');
+    loader.style.display = 'block';
+    bookContainer.textContent = '';
+    showResults.textContent = '';
     const searchValue = searchInput.value;
-    const url = `https://openlibrary.org/search.json?q=${searchValue}`;
-    fetch(url)
-        .then(res => res.json())
-        .then(data => displayData(data))
-        .catch(error => console.log('fetch error'))
+    if (searchInput.value === '') {
+        displayError();
+    }
+    else {
+        const url = `https://openlibrary.org/search.json?q=${searchValue}`;
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                displayData(data);
+                loader.style.display = 'none';
+            }
+                )
+        searchInput.value = "";
+    }
 }
 
 const displayData = data => {
     console.log(data);
-    const books = data.docs;
+    let books = data.docs;
+    const totalResults = data.numFound;
+    if (totalResults === 0) {
+        displayError()
+    }
+    else {
+        const showResults = data.docs.length;
+    showTotalResults(totalResults, showResults);
     books.forEach(book => {
         const title = book.title;
         const authors = book.author_name;
@@ -46,21 +68,24 @@ const displayData = data => {
         `
 
         bookContainer.appendChild(div);
-    })
-
-    //   <div class="card mb-3" style="max-width: 540px;">
-    //             <div class="row g-0">
-    //                 <div class="col-md-4">
-    //                     <img src="..." class="img-fluid rounded-start" alt="...">
-    //                 </div>
-    //                 <div class="col-md-8">
-    //                     <div class="card-body">
-    //                         <h5 class="card-title">Card title</h5>
-    //                         <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional
-    //                             content. This content is a little bit longer.</p>
-    //                         <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
-    //                     </div>
-    //                 </div>
-    //             </div>
-    //         </div>
+    })    
+    }
+    
+}
+// total result show
+const showTotalResults = (totalResults, showResults) => {
+    const p = document.createElement('p');
+    const parent = document.getElementById('show-results-number');
+    p.innerText = `Showing ${showResults} out of ${totalResults} results`;
+    parent.appendChild(p);
+}
+// error show
+const displayError = () => {
+    const loader = document.getElementById('loading');
+    loader.style.display = 'none';
+    const p = document.createElement('p');
+    const parent = document.getElementById('show-results-number');
+    parent.textContent = '';
+    p.innerText = `Please input valid book name`;
+    parent.appendChild(p);
 }
